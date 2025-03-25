@@ -1,5 +1,6 @@
 require("dotenv").config();
 const connectDb = require("./config/db.js");
+const app = require("./middlewares/app.js");
 connectDb();
 
 app.listen(process.env.PORT, () => {
