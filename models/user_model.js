@@ -18,8 +18,12 @@ let userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Password is required !!!"],
       minLength: [8, "Password hold 8 letters !!!"],
-      select: false,
-      validate: [validator.isStrongPassword, "Password is weak !!!"],
+      validate: {
+        validator: function (value) {
+          return /[A-Z]/.test(value) && /\d/.test(value);
+        },
+        message: "Password is weak !!!",
+      },
     },
     refreshToken: { type: String, select: false },
   },

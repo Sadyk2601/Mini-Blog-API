@@ -5,8 +5,8 @@ const bcrypt = require("bcryptjs");
 let jwt = require("jsonwebtoken");
 
 let registerUser = errorHandler(async (req, res, next) => {
-  let { email, username, password, name } = req.body;
-  if (!email || !username || !password || !name) {
+  let { email, username, age, password, name } = req.body;
+  if (!email || !username || !age || !password || !name) {
     throw new Error("Fill all requied inputs !!!");
   }
 
@@ -18,7 +18,7 @@ let registerUser = errorHandler(async (req, res, next) => {
     throw new Error(`${existUser.length ? "username" : "email"} is exists !!!`);
   }
 
-  let user = await User.create({ email, username, password, name });
+  let user = await User.create({ email, username, age, password, name });
   resposcha(res, 200, {
     message: "Authorization succesfully passed !!!",
     user,
@@ -41,6 +41,7 @@ let login = errorHandler(async (req, res, next) => {
     process.env.JWT_TOKEN_SECRET_KEY,
     { expiresIn: process.env.JWT_EXP_TIME }
   );
+  console.log(token);
 
   let refreshToken = await jwt.sign(
     { id: user.id, role: user.role },
@@ -67,7 +68,6 @@ let login = errorHandler(async (req, res, next) => {
 let resetAccesWithRefresh = errorHandler(async (req, res, next) => {
   let token = req.cookies.jwt;
   let checking = jwt.verify(token, process.env.JWT_REFRESH_TOKEN_SECRET_KEY);
-
   let user = await User.findOne({ refreshToken: token });
   if (!user || user.id !== checking.id) {
     throw new Error("User not found !!!");
@@ -78,11 +78,22 @@ let resetAccesWithRefresh = errorHandler(async (req, res, next) => {
     process.env.JWT_TOKEN_SECRET_KEY,
     { expiresIn: process.env.JWT_EXP_TIME }
   );
-
   resposcha(res, 200, { token: accesToken });
 });
+
+const logout = errorHandler(async (req, res) => {
+  try {
+    res.clearCookie("jwt", { httpOnly: false });
+    await User.findByIdAndUpdate(req.user.id, { refreshToken: null });
+    resposcha(res, 200, { message: "You succesfully logout !!!" });
+  } catch (error) {
+    resposcha(res, 500, { message: "Server error !!!", error });
+  }
+});
+
 module.exports = {
   registerUser,
   login,
   resetAccesWithRefresh,
+  logout,
 };

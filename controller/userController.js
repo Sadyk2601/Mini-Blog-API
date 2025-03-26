@@ -4,7 +4,10 @@ const resposcha = require("../utils/resposcha");
 
 const myProfile = errorHandler(function (req, res, next) {
   try {
-    resposcha(res, 200, req.user);
+    let user = req.user;
+    console.log(user);
+
+    resposcha(res, 200, { user });
   } catch (error) {
     resposcha(res, 500, { message: "Error server !!!" });
   }
